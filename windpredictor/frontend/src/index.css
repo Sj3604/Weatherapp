@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #aa3bff;
+  --bg-dark: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --orb-1: rgba(147, 51, 234, 0.2); /* purple-600/20 */
+  --orb-2: rgba(37, 99, 235, 0.2);  /* blue-600/20 */
+}
+
+/* Morning: 6 AM to 11 AM */
+.theme-morning {
+  --primary: #ea580c; /* Orange */
+  --bg-dark: #fffbeb;
+  --bg-card: rgba(255, 255, 255, 0.65);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-glass: rgba(0, 0, 0, 0.05);
+  --orb-1: rgba(253, 224, 71, 0.5); /* yellow-300 */
+  --orb-2: rgba(253, 186, 116, 0.5); /* orange-300 */
+}
+
+/* Afternoon: 12 PM to 5 PM */
+.theme-afternoon {
+  --primary: #0ea5e9; /* Sky blue */
+  --bg-dark: #f0f9ff;
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --border-glass: rgba(0, 0, 0, 0.05);
+  --orb-1: rgba(186, 230, 253, 0.6); /* sky-200 */
+  --orb-2: rgba(125, 211, 252, 0.6); /* sky-300 */
+}
+
+/* Evening: 6 PM to 8 PM */
+.theme-evening {
+  --primary: #f43f5e; /* Rose */
+  --bg-dark: #311823;
+  --bg-card: rgba(60, 35, 45, 0.75);
+  --text-main: #fdf2f8;
+  --text-muted: #fb7185;
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --orb-1: rgba(251, 113, 133, 0.3); /* rose-400 */
+  --orb-2: rgba(253, 164, 175, 0.3); /* rose-300 */
+}
+
+/* Night: 9 PM to 5 AM */
+.theme-night {
+  --primary: #8b5cf6; /* Violet */
+  --bg-dark: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --orb-1: rgba(147, 51, 234, 0.3);
+  --orb-2: rgba(37, 99, 235, 0.3);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  transition: background-color 0.8s ease, color 0.8s ease;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: background 0.8s ease, border-color 0.8s ease;
+}
+
+/* Custom animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* Background Wind & Sparkle Animations */
+@keyframes wind-blow {
+  0% { transform: translateX(-100vw) translateY(0); opacity: 0; }
+  10% { opacity: 0.5; }
+  90% { opacity: 0.5; }
+  100% { transform: translateX(100vw) translateY(20px); opacity: 0; }
+}
+
+.animate-wind {
+  animation: wind-blow linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(170, 59, 255, 0.4), transparent);
+}
+
+@keyframes cloud-move {
+  0% { transform: translateX(-150px); }
+  100% { transform: translateX(100vw); }
+}
+
+.animate-cloud {
+  animation: cloud-move linear infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+.animate-sparkle {
+  animation: sparkle ease-in-out infinite;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 10px 2px rgba(170, 59, 255, 0.4);
+}

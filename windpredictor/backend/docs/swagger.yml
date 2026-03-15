@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: WindPredictor API
+  description: API documentation for the WindPredictor application.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3001
+    description: Local development server
+paths:
+  /api/predict:
+    post:
+      summary: Request a wind and weather prediction
+      description: Fetches live weather data and calculates the probability of a weather disturbance based on wind direction and humidity.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - latitude
+                - longitude
+              properties:
+                latitude:
+                  type: number
+                  example: 40.7128
+                longitude:
+                  type: number
+                  example: -74.0060
+                locationName:
+                  type: string
+                  example: "New York City"
+      responses:
+        '200':
+          description: Successful prediction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  location:
+                    type: string
+                  currentWeather:
+                    type: object
+                    properties:
+                      temperatureC:
+                        type: number
+                      humidity:
+                        type: number
+                      windSpeedKmH:
+                        type: number
+                      windDirectionDegrees:
+                        type: number
+                      windDirectionText:
+                        type: string
+                      timestamp:
+                        type: string
+                  prediction:
+                    type: object
+                    properties:
+                      probabilityPercent:
+                        type: number
+                      status:
+                        type: string
+                      severity:
+                        type: string
+                      contributingFactors:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          description: Missing latitude or longitude
+        '500':
+          description: Server Error
