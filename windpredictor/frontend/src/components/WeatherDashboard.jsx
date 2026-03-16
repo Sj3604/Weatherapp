@@ -1,5 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, Wind, Droplets, MapPin, AlertTriangle, CheckCircle, Search, Compass, History, Clock } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix for default marker icon in leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+function MapUpdater({ center }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center && center[0] && center[1]) {
+      map.flyTo(center, 10, { animate: true });
+    }
+  }, [center, map]);
+  return null;
+}
 
 const WeatherDashboard = ({ onTimeChange }) => {
   const [locationQuery, setLocationQuery] = useState('');
@@ -70,6 +90,8 @@ const WeatherDashboard = ({ onTimeChange }) => {
       if (!response.ok) throw new Error('Failed to fetch prediction');
 
       const data = await response.json();
+      data.latitude = lat;
+      data.longitude = lon;
       setWeatherData(data);
       if (data.localHour !== undefined && onTimeChange) {
         onTimeChange(data.localHour);
@@ -120,7 +142,7 @@ const WeatherDashboard = ({ onTimeChange }) => {
         <div className="flex items-center gap-3">
           <Wind className="w-10 h-10 text-[var(--primary)]" />
           <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary)] to-purple-400 m-0">
-            WindPredictor
+            RainPulse
           </h1>
         </div>
 
@@ -176,107 +198,147 @@ const WeatherDashboard = ({ onTimeChange }) => {
             <p className="text-slate-400 text-lg">Analyzing atmospheric conditions...</p>
           </div>
         ) : weatherData ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="flex flex-col gap-6">
 
-            {/* Left Column: Live Weather Stats */}
-            <div className="lg:col-span-5 flex flex-col gap-6">
-
-              <div className="glass-panel p-8 rounded-3xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)] rounded-full blur-[80px] opacity-30 -mr-10 -mt-10"></div>
-
-                <div className="flex items-center gap-2 text-slate-400 mb-6">
-                  <MapPin className="w-5 h-5" />
-                  <h2 className="text-xl font-medium m-0 truncate">{weatherData.location}</h2>
-                </div>
-
-                <div className="flex items-end gap-2 mb-8">
-                  <span className="text-7xl font-light text-white leading-none">
-                    {Math.round(weatherData.currentWeather?.temperatureC)}°
+            {/* ALERT BANNER */}
+            {weatherData.currentWeather?.upcomingAlert?.active && (
+              <div className="glass-panel border-l-4 border-red-500/80 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-pulse-soft bg-red-500/10 shadow-lg shadow-red-500/20">
+                <div className="flex items-center gap-4 text-red-100">
+                  <span className="p-3 bg-red-500/20 rounded-2xl shrink-0">
+                    <AlertTriangle className="w-8 h-8 text-red-400" />
                   </span>
-                  <span className="text-2xl text-slate-400 mb-2">C</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[var(--bg-card)] rounded-2xl p-4 border border-[var(--border-glass)] flex flex-col gap-2 shadow-sm">
-                    <div className="flex items-center gap-2 text-[var(--text-muted)]">
-                      <Wind className="w-4 h-4" />
-                      <span className="text-sm">Wind Speed</span>
-                    </div>
-                    <span className="text-2xl font-semibold text-[var(--text-main)]">
-                      {weatherData.currentWeather?.windSpeedKmH} <span className="text-sm font-normal text-[var(--text-muted)]">km/h</span>
-                    </span>
-                  </div>
-
-                  <div className="bg-[var(--bg-card)] rounded-2xl p-4 border border-[var(--border-glass)] flex flex-col gap-2 shadow-sm">
-                    <div className="flex items-center gap-2 text-[var(--text-muted)]">
-                      <Droplets className="w-4 h-4" />
-                      <span className="text-sm">Humidity</span>
-                    </div>
-                    <span className="text-2xl font-semibold text-[var(--text-main)]">
-                      {weatherData.currentWeather?.humidity}<span className="text-sm font-normal text-[var(--text-muted)]">%</span>
-                    </span>
+                  <div>
+                    <h3 className="text-xl font-bold text-red-400 tracking-wide uppercase text-sm mb-1">Weather Alert</h3>
+                    <p className="text-red-200/90 text-lg">{weatherData.currentWeather?.upcomingAlert?.message}</p>
                   </div>
                 </div>
               </div>
+            )}
 
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+              {/* Left Column: Live Weather Stats */}
+              <div className="lg:col-span-5 flex flex-col gap-6">
+
+                <div className="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)] rounded-full blur-[80px] opacity-30 -mr-10 -mt-10"></div>
+
+                  <div className="flex items-center gap-2 text-slate-400 mb-6">
+                    <MapPin className="w-5 h-5" />
+                    <h2 className="text-xl font-medium m-0 truncate">{weatherData.location}</h2>
+                  </div>
+
+                  <div className="flex items-end gap-2 mb-8">
+                    <span className="text-7xl font-light text-white leading-none">
+                      {Math.round(weatherData.currentWeather?.temperatureC)}°
+                    </span>
+                    <span className="text-2xl text-slate-400 mb-2">C</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-[var(--bg-card)] rounded-2xl p-4 border border-[var(--border-glass)] flex flex-col gap-2 shadow-sm">
+                      <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                        <Wind className="w-4 h-4" />
+                        <span className="text-sm">Wind Speed</span>
+                      </div>
+                      <span className="text-2xl font-semibold text-[var(--text-main)]">
+                        {weatherData.currentWeather?.windSpeedKmH} <span className="text-sm font-normal text-[var(--text-muted)]">km/h</span>
+                      </span>
+                    </div>
+
+                    <div className="bg-[var(--bg-card)] rounded-2xl p-4 border border-[var(--border-glass)] flex flex-col gap-2 shadow-sm">
+                      <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                        <Droplets className="w-4 h-4" />
+                        <span className="text-sm">Humidity</span>
+                      </div>
+                      <span className="text-2xl font-semibold text-[var(--text-main)]">
+                        {weatherData.currentWeather?.humidity}<span className="text-sm font-normal text-[var(--text-muted)]">%</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Prediction Logic */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+
+                {/* Massive prediction banner */}
+                <div className={`glass-panel p-8 rounded-3xl border-l-4 relative overflow-hidden ${weatherData.prediction?.severity === 'high' ? 'border-l-red-500' :
+                  weatherData.prediction?.severity === 'medium' ? 'border-l-yellow-500' : 'border-l-green-500'
+                  }`}>
+
+                  <h3 className="text-slate-400 text-sm uppercase tracking-wider font-semibold mb-2">AI Output</h3>
+                  <h2 className={`text-3xl md:text-xl font-bold mb-6 ${getSeverityColor(weatherData.prediction?.severity)}`}>
+                    {weatherData.prediction?.status}
+                  </h2>
+
+                  <div className="flex items-center gap-6">
+                    {/* Probability Circle */}
+                    <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="64" cy="64" r="56" className="stroke-slate-700 fill-none stroke-[8]" />
+                        <circle
+                          cx="64" cy="64" r="56"
+                          className={`fill-none stroke-[8] stroke-current ${getSeverityColor(weatherData.prediction?.severity)}`}
+                          strokeDasharray={`${2 * Math.PI * 56}`}
+                          strokeDashoffset={`${2 * Math.PI * 56 * (1 - weatherData.prediction?.probabilityPercent / 100)}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-bold">{weatherData.prediction?.probabilityPercent}%</span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">Risk</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      {weatherData.prediction?.contributingFactors?.map((factor, i) => (
+                        <div key={i} className="flex gap-3 text-slate-300">
+                          <CheckCircle className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
+                          <span className="text-sm leading-relaxed">{factor}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Wind compass feature */}
+                <div className="glass-panel p-6 rounded-3xl flex items-center gap-6 mt-auto">
+                  <div className="w-16 h-16 rounded-full bg-[var(--bg-card)] flex items-center justify-center border border-[var(--border-glass)] relative text-[var(--primary)]">
+                    <Compass className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h4 className="text-[var(--text-muted)] text-sm mb-1">Dominant Wind Direction</h4>
+                    <p className="text-xl font-semibold text-[var(--text-main)]">
+                      {weatherData.currentWeather?.windDirectionDegrees}° {weatherData.currentWeather?.windDirectionText}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
-            {/* Right Column: Prediction Logic */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
-
-              {/* Massive prediction banner */}
-              <div className={`glass-panel p-8 rounded-3xl border-l-4 relative overflow-hidden ${weatherData.prediction?.severity === 'high' ? 'border-l-red-500' :
-                  weatherData.prediction?.severity === 'medium' ? 'border-l-yellow-500' : 'border-l-green-500'
-                }`}>
-
-                <h3 className="text-slate-400 text-sm uppercase tracking-wider font-semibold mb-2">AI Output</h3>
-                <h2 className={`text-3xl md:text-xl font-bold mb-6 ${getSeverityColor(weatherData.prediction?.severity)}`}>
-                  {weatherData.prediction?.status}
-                </h2>
-
-                <div className="flex items-center gap-6">
-                  {/* Probability Circle */}
-                  <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="64" cy="64" r="56" className="stroke-slate-700 fill-none stroke-[8]" />
-                      <circle
-                        cx="64" cy="64" r="56"
-                        className={`fill-none stroke-[8] stroke-current ${getSeverityColor(weatherData.prediction?.severity)}`}
-                        strokeDasharray={`${2 * Math.PI * 56}`}
-                        strokeDashoffset={`${2 * Math.PI * 56 * (1 - weatherData.prediction?.probabilityPercent / 100)}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold">{weatherData.prediction?.probabilityPercent}%</span>
-                      <span className="text-[10px] text-slate-400 uppercase tracking-widest">Risk</span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    {weatherData.prediction?.contributingFactors?.map((factor, i) => (
-                      <div key={i} className="flex gap-3 text-slate-300">
-                        <CheckCircle className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
-                        <span className="text-sm leading-relaxed">{factor}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* MAP SECTION */}
+            <div className="glass-panel p-2 md:p-4 rounded-3xl w-full h-[400px] relative overflow-hidden flex flex-col mt-2 border border-[var(--border-glass)]">
+              <div className="flex items-center gap-2 mb-3 px-2 text-slate-300">
+                <MapPin className="w-5 h-5 text-[var(--primary)]" />
+                <h3 className="text-lg font-semibold m-0">Live Radar & Location View</h3>
               </div>
-
-              {/* Wind compass feature */}
-              <div className="glass-panel p-6 rounded-3xl flex items-center gap-6 mt-auto">
-                <div className="w-16 h-16 rounded-full bg-[var(--bg-card)] flex items-center justify-center border border-[var(--border-glass)] relative text-[var(--primary)]">
-                  <Compass className="w-8 h-8" />
-                </div>
-                <div>
-                  <h4 className="text-[var(--text-muted)] text-sm mb-1">Dominant Wind Direction</h4>
-                  <p className="text-xl font-semibold text-[var(--text-main)]">
-                    {weatherData.currentWeather?.windDirectionDegrees}° {weatherData.currentWeather?.windDirectionText}
-                  </p>
-                </div>
+              <div className="flex-1 w-full rounded-2xl overflow-hidden relative z-0">
+                <MapContainer
+                  center={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]}
+                  zoom={10}
+                  style={{ height: '100%', width: '100%', backgroundColor: '#1e293b' }}
+                >
+                  <TileLayer
+                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
+                  />
+                  <MapUpdater center={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]} />
+                  <Marker position={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]} />
+                </MapContainer>
               </div>
-
             </div>
           </div>
         ) : null}

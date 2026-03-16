@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import WeatherDashboard from './components/WeatherDashboard'
+import LandingPage from './components/LandingPage'
 
 function AnimatedBackground() {
   const [elements, setElements] = useState({ winds: [], sparkles: [], clouds: [] });
@@ -160,6 +161,7 @@ function CelestialBody({ localHour }) {
 function App() {
   const [themeClass, setThemeClass] = useState('theme-night'); // Default theme
   const [currentLocalHour, setCurrentLocalHour] = useState(new Date().getHours()); 
+  const [isStarted, setIsStarted] = useState(false);
 
   const handleTimeChange = (localHour) => {
     setCurrentLocalHour(localHour);
@@ -175,7 +177,11 @@ function App() {
       <CelestialBody localHour={currentLocalHour} />
       
       <div className="relative z-10 w-full flex-grow flex flex-col justify-center">
-        <WeatherDashboard onTimeChange={handleTimeChange} />
+        {!isStarted ? (
+          <LandingPage onStart={() => setIsStarted(true)} />
+        ) : (
+          <WeatherDashboard onTimeChange={handleTimeChange} />
+        )}
       </div>
       
       {/* Footer */}

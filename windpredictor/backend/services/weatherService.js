@@ -9,11 +9,13 @@ class WeatherService {
     async getLiveData(lat, lon) {
         try {
             // Open-Meteo provides free, reliable real-time forecasting
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m&timezone=auto`;
+            // Include hourly data for 4 hours to get the next 3 hours of precipitation
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m&hourly=precipitation,weather_code&forecast_hours=4&timezone=auto`;
             const response = await axios.get(url);
-            
+
             const current = response.data.current;
-            
+            const hourly = response.data.hourly;
+
             let localHour = new Date().getHours();
             if (current.time) {
                 // current.time format is typically "YYYY-MM-DDTHH:mm"
@@ -24,6 +26,31 @@ class WeatherService {
                 }
             }
 
+            let upcomingAlert = null;
+            if (hourly && hourly.precipitation && hourly.precipitation.length > 0) {
+                // Check next 3 hours (index 1 to 3)
+                const rainHours = [];
+                for (let i = 1; i <= 3; i++) {
+                    if (hourly.precipitation[i] > 0) {
+                        rainHours.push(i);
+                    }
+                }
+
+                if (rainHours.length > 0) {
+                    upcomingAlert = {
+                        active: true,
+                        message: `Rain expected in ${rainHours[0]} hour(s)`,
+                        severity: "high"
+                    };
+                } else {
+                    upcomingAlert = {
+                        active: false,
+                        message: "No rain expected in the next 3 hours",
+                        severity: "low"
+                    };
+                }
+            }
+
             return {
                 temperatureC: current.temperature_2m,
                 humidity: current.relative_humidity_2m,
@@ -31,7 +58,8 @@ class WeatherService {
                 windDirectionDegrees: current.wind_direction_10m,
                 windDirectionText: this.getWindDirectionText(current.wind_direction_10m),
                 timestamp: current.time,
-                localHour: localHour
+                localHour: localHour,
+                upcomingAlert: upcomingAlert
             };
         } catch (error) {
             console.error("Error fetching live weather data:", error.message);
@@ -103,7 +131,7 @@ class WeatherService {
         // Determine outcome classification
         let status = "Clear / No Significant Disturbance";
         let severity = "low";
-        
+
         if (disturbanceProbability >= 80) {
             status = "High risk of Rain / Severe Weather Disturbance";
             severity = "high";
