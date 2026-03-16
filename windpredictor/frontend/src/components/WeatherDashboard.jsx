@@ -33,7 +33,7 @@ const WeatherDashboard = ({ onTimeChange }) => {
 
   // Example default coordinates (New York) to show on initial load
   useEffect(() => {
-    fetchPrediction(40.7128, -74.0060, "New York City (Default)");
+    fetchPrediction(12.9716, 77.5946, "Bengaluru (Default)");
     fetchHistory();
   }, []);
 
@@ -327,7 +327,7 @@ const WeatherDashboard = ({ onTimeChange }) => {
               </div>
               <div className="flex-1 w-full rounded-2xl overflow-hidden relative z-0">
                 <MapContainer
-                  center={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]}
+                  center={[weatherData.latitude || 12.9716, weatherData.longitude || 77.5946]}
                   zoom={10}
                   style={{ height: '100%', width: '100%', backgroundColor: '#1e293b' }}
                 >
@@ -335,8 +335,8 @@ const WeatherDashboard = ({ onTimeChange }) => {
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                     attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors &copy; <a href='https://carto.com/attributions'>CARTO</a>"
                   />
-                  <MapUpdater center={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]} />
-                  <Marker position={[weatherData.latitude || 40.7128, weatherData.longitude || -74.0060]} />
+                  <MapUpdater center={[weatherData.latitude || 12.9716, weatherData.longitude || 77.5946]} />
+                  <Marker position={[weatherData.latitude || 12.9716, weatherData.longitude || 77.5946]} />
                 </MapContainer>
               </div>
             </div>
