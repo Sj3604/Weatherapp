@@ -39,7 +39,7 @@ const WeatherDashboard = ({ onTimeChange }) => {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/history');
+      const res = await fetch('/api/history');
       if (res.ok) {
         const data = await res.json();
         setSearchHistory(data);
@@ -81,7 +81,7 @@ const WeatherDashboard = ({ onTimeChange }) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('http://localhost:3001/api/predict', {
+      const response = await fetch('/api/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ latitude: lat, longitude: lon, locationName: name })
